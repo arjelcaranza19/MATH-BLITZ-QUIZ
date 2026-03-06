@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Blitz Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #050505;
+            color: white;
+            overflow: hidden;
+        }
+        
+        .font-display { font-family: 'Orbitron', sans-serif; }
+        .retro-grid {
+            position: fixed;
+            width: 200vw;
+            height: 200vh;
+            top: -50%;
+            left: -50%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 0, 255, 0.3) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg);
+            animation: grid-move 20s linear infinite;
+            z-index: -2;
+            opacity: 0.4;
+        }
+        @keyframes grid-move {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+
+        .neon-text-cyan { text-shadow: 0 0 5px #06b6d4, 0 0 10px #06b6d4; }
+        .neon-text-pink { text-shadow: 0 0 5px #d946ef, 0 0 10px #d946ef; }
+        .neon-box-cyan { box-shadow: 0 0 10px #06b6d4, inset 0 0 10px #06b6d4; }
+        
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .slide-up { animation: slideUp 0.5s ease-out forwards; }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes successPop {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(10deg); }
+            70% { transform: scale(0.9) rotate(-5deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        @keyframes successGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.5), 0 0 40px rgba(34, 197, 94, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(34, 197, 94, 0.8), 0 0 60px rgba(34, 197, 94, 0.5); }
+        }
+        .success-icon {
+            animation: successPop 0.6s ease-out forwards, successGlow 2s ease-in-out infinite;
+        }
+        @keyframes checkmark {
+            0% { stroke-dashoffset: 100; }
+            100% { stroke-dashoffset: 0; }
+        }
+        .checkmark-path {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: checkmark 0.5s ease-out 0.3s forwards;
+        }
+
+        @keyframes penaltyPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        .penalty-anim {
+            animation: penaltyPulse 0.5s ease-in-out;
+        }
+
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .glass-panel {
+            background: rgba(20, 20, 30, 0.85);
+            backdrop-filter: blur(12px);
+            border: none;
+        }
+        
+        .timer-bar { transition: width 1s linear; }
+        
+        /* Custom Scrollbar for Leaderboard */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f0f1a; }
+        ::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0891b2; }
+
+        .hidden-screen { display: none !important; }
+        
+        #app-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .screen-content {
+            width: 100%;
+            height: 100%;
+            max-width: none;
+            max-height: none;
+            border-radius: 0;
+            overflow-y: auto;
+        }
+
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        
+        .policy-item {
+            transition: all 0.3s;
+        }
+        .policy-met {
+            color: #22c55e;
+        }
+        .policy-unmet {
+            color: #ef4444;
+        }
+        .pause-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="retro-grid"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black z-[-1]"></div>
+
+    <!-- Main Container -->
+    <div id="app-container">
+        <div id="auth-screen" class="screen-content glass-panel p-8 md:p-12 text-center shadow-2xl shadow-cyan-500/20 pop-in relative flex flex-col items-center justify-center">
+            <h1 class="font-display text-6xl md:text-8xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600 neon-text-cyan tracking-wider">MATH<br>BLITZ</h1>
+            <p class="text-gray-400 text-xl md:text-2xl mb-8 tracking-widest uppercase">System Authentication Required</p>
+            
+            <div class="max-w-md w-full mx-auto space-y-4 relative">
+                <div id="success-notification" class="hidden-screen absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm rounded-xl">
+                    <div class="success-icon w-24 h-24 rounded-full bg-green-500 flex items-center justify-center mb-4">
+                        <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path class="checkmark-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-display text-2xl font-bold text-green-400 mb-2">SUCCESSFULLY CREATED!</h3>
+                    <p class="text-gray-400 text-sm">Redirecting to login...</p>
+                </div>
+
+                <div id="login-form">
+                    <input type="text" id="login-username" placeholder="Username" class="w-full bg-black/50 border border-gray-700 rounded-lg p-4 text-white text-lg focus:border-cyan-500 focus:outline-none transition-colors mb-3">
+                    
+                    <div class="relative mb-4">
+                        <input type="password" id="login-password" placeholder="Password" class="w-full bg-black/50 border border-gray-700 rounded-lg p-4 text-white text-lg focus:border-cyan-500 focus:outline-none transition-colors pr-10">
+                        <button onclick="togglePasswordVisibility('login-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-cyan-400 transition-colors">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <div id="login-error" class="text-red-500 text-sm h-5 opacity-0 transition-opacity mb-2">Invalid credentials</div>
+
+                    <button onclick="handleLogin()" class="w-full py-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-lg rounded-lg transition-all hover:shadow-[0_0_15px_rgba(6,182,212,0.5)] mb-3">
+                        LOGIN
+                    </button>
+                    <p class="text-sm text-gray-400">Don't have an account? <button onclick="showRegisterForm()" class="text-cyan-400 hover:underline">Register here</button></p>
+                </div>
+
+                <!-- Register Form -->
+                <div id="register-form" class="hidden-screen">
+                    <input type="text" id="reg-username" placeholder="Create Username" class="w-full bg-black/50 border border-gray-700 rounded-lg p-4 text-white text-lg focus:border-cyan-500 focus:outline-none transition-colors mb-3">
+                    
+                    <div class="relative mb-2">
+                        <input type="password" id="reg-password" placeholder="Create Password" oninput="checkPasswordStrength()" class="w-full bg-black/50 border border-gray-700 rounded-lg p-4 text-white text-lg focus:border-cyan-500 focus:outline-none transition-colors pr-10">
+                        <button onclick="togglePasswordVisibility('reg-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-cyan-400 transition-colors">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <div class="w-full bg-gray-700 rounded-full h-1 mb-2">
+                        <div id="password-strength-bar" class="password-strength bg-red-500 w-0"></div>
+                    </div>
+
+                    <div class="text-left text-xs text-gray-400 mb-3 space-y-1">
+                        <div id="policy-length" class="policy-item policy-unmet"><i class="fas fa-times mr-1"></i> At least 8 characters</div>
+                        <div id="policy-upper" class="policy-item policy-unmet"><i class="fas fa-times mr-1"></i> One uppercase letter</div>
+                        <div id="policy-lower" class="policy-item policy-unmet"><i class="fas fa-times mr-1"></i> One lowercase letter</div>
+                        <div id="policy-number" class="policy-item policy-unmet"><i class="fas fa-times mr-1"></i> One number</div>
+                        <div id="policy-special" class="policy-item policy-unmet"><i class="fas fa-times mr-1"></i> One special character (!@#$%^&*)</div>
+                    </div>
+
+                    <div class="relative mb-4">
+                        <input type="password" id="reg-confirm-password" placeholder="Confirm Password" class="w-full bg-black/50 border border-gray-700 rounded-lg p-4 text-white text-lg focus:border-cyan-500 focus:outline-none transition-colors pr-10">
+                        <button onclick="togglePasswordVisibility('reg-confirm-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-cyan-400 transition-colors">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <div id="reg-error" class="text-red-500 text-sm h-5 opacity-0 transition-opacity mb-2">Error message</div>
+
+                    <button onclick="handleRegister()" class="w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold text-lg rounded-lg transition-all hover:shadow-[0_0_15px_rgba(22,163,74,0.5)] mb-3">
+                        CREATE ACCOUNT
+                    </button>
+                    <p class="text-sm text-gray-400">Already have an account? <button onclick="showLoginForm()" class="text-cyan-400 hover:underline">Login here</button></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="dashboard-screen" class="hidden-screen screen-content glass-panel p-8 md:p-12 text-center shadow-2xl shadow-blue-500/20 pop-in flex flex-col items-center justify-center">
+            <div class="w-full max-w-4xl">
+                <div class="flex justify-between items-center mb-8">
+                    <div class="text-left">
+                        <div class="text-xs text-gray-400 uppercase">Welcome Back</div>
+                        <div id="dashboard-user" class="text-cyan-400 font-bold text-2xl">User</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="openSettings()" class="text-xs text-purple-400 hover:text-purple-300 border border-purple-900 bg-purple-900/20 px-4 py-2 rounded uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <button onclick="logout()" class="text-xs text-red-400 hover:text-red-300 border border-red-900 bg-red-900/20 px-4 py-2 rounded uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                        </button>
+                    </div>
+                </div>
+
+                <h2 class="font-display text-4xl md:text-5xl font-bold text-white mb-8">PLAYER DASHBOARD</h2>
+                
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-black/40 p-6 rounded-xl border border-white/10">
+                        <div class="text-3xl font-display text-cyan-400 mb-1" id="dash-total-games">0</div>
+                        <div class="text-xs text-gray-400 uppercase">Total Games</div>
+                    </div>
+                    <div class="bg-black/40 p-6 rounded-xl border border-white/10">
+                        <div class="text-3xl font-display text-green-400 mb-1" id="dash-high-score">0</div>
+                        <div class="text-xs text-gray-400 uppercase">High Score</div>
+                    </div>
+                    <div class="bg-black/40 p-6 rounded-xl border border-white/10">
+                        <div class="text-3xl font-display text-yellow-400 mb-1" id="dash-avg-accuracy">0%</div>
+                        <div class="text-xs text-gray-400 uppercase">Avg Accuracy</div>
+                    </div>
+                    <div class="bg-black/40 p-6 rounded-xl border border-white/10">
+                        <div class="text-3xl font-display text-purple-400 mb-1" id="dash-best-rank">-</div>
+                        <div class="text-xs text-gray-400 uppercase">Best Rank</div>
+                    </div>
+                </div>
+
+                <div class="bg-black/30 rounded-xl p-4 mb-8 border border-white/10 text-left">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase mb-3 tracking-wider">Recent Games</h3>
+                    <div id="recent-history-list" class="space-y-2 max-h-32 overflow-y-auto">
+                        <div class="text-center text-gray-600 text-sm py-4">No games played yet</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-4 justify-center">
+                    <button onclick="switchScreen('menu')" class="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-display font-bold text-lg rounded-xl transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(236,72,153,0.4)]">
+                        <i class="fas fa-arrow-left mr-2"></i> BACK TO MENU
+                    </button>
+                    <button onclick="showLeaderboard()" class="px-8 py-4 bg-black/50 border-2 border-yellow-500 text-yellow-400 hover:bg-yellow-500/20 font-display font-bold text-lg rounded-xl transition-all">
+                        <i class="fas fa-trophy mr-2"></i> LEADERBOARD
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MENU SCREEN - UPDATED LAYOUT -->
+        <div id="menu-screen" class="hidden-screen screen-content glass-panel p-8 md:p-12 text-center shadow-2xl shadow-purple-500/20 pop-in flex flex-col items-center justify-center">
+            <div class="w-full max-w-4xl">
+                <!-- UPDATED HEADER: Settings left, Player Name center, Logout right -->
+                <div class="flex justify-between items-center mb-6" id="menu-header">
+                    <button onclick="openSettings()" class="text-xs text-purple-400 hover:text-purple-300 border border-purple-900 bg-purple-900/20 px-4 py-2 rounded uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-cog"></i> Settings
+                    </button>
+                    
+                    <div class="text-center absolute left-1/2 transform -translate-x-1/2">
+                        <div class="text-xs text-gray-400 uppercase">Player Name</div>
+                        <div id="user-display" class="text-cyan-400 font-bold text-lg">User</div>
+                    </div>
+                    
+                    <button onclick="logout()" class="text-xs text-red-400 hover:text-red-300 border border-red-900 bg-red-900/20 px-4 py-2 rounded uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+
+                <h2 class="font-display text-3xl md:text-5xl font-bold text-white mb-8">SELECT DIFFICULTY</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Easy -->
+                    <div onclick="selectDifficulty('easy', this)" class="difficulty-card cursor-pointer bg-black/40 p-8 rounded-xl border border-white/10 hover:border-green-500/50 transition-all group">
+                        <div class="text-green-400 font-display font-bold text-3xl mb-2 group-hover:neon-text-cyan">EASY</div>
+                        <div class="text-sm text-gray-400 mb-2">Addition & Subtraction</div>
+                        <div class="text-sm text-gray-600 font-mono">Range: 1-10</div>
+                        <div class="mt-3 text-sm text-green-600 border border-green-900/30 bg-green-900/10 rounded px-2 py-1 inline-block">Time: 30s</div>
+                    </div>
+
+                    <!-- Medium -->
+                    <div onclick="selectDifficulty('medium', this)" class="difficulty-card cursor-pointer bg-black/40 p-8 rounded-xl border border-white/10 hover:border-yellow-500/50 transition-all group">
+                        <div class="text-yellow-400 font-display font-bold text-3xl mb-2 group-hover:neon-text-cyan">MEDIUM</div>
+                        <div class="text-sm text-gray-400 mb-2">+ Inc. Multiplication</div>
+                        <div class="text-sm text-gray-600 font-mono">Range: 1-10</div>
+                        <div class="mt-3 text-sm text-yellow-600 border border-yellow-900/30 bg-yellow-900/10 rounded px-2 py-1 inline-block">Time: 50s</div>
+                        <div id="medium-penalty" class="mt-2 text-xs text-red-400 font-bold opacity-0 transition-opacity">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>-3s on wrong answer
+                        </div>
+                    </div>
+
+                    <!-- Hard -->
+                    <div onclick="selectDifficulty('hard', this)" class="difficulty-card cursor-pointer bg-black/40 p-8 rounded-xl border border-white/10 hover:border-red-500/50 transition-all group">
+                        <div class="text-red-500 font-display font-bold text-3xl mb-2 group-hover:neon-text-pink">HARD</div>
+                        <div class="text-sm text-gray-400 mb-2">+ Inc. Division</div>
+                        <div class="text-sm text-gray-600 font-mono">Range: 1-10</div>
+                        <div class="mt-3 text-sm text-red-600 border border-red-900/30 bg-red-900/10 rounded px-2 py-1 inline-block">Time: 60s</div>
+                        <div id="hard-penalty" class="mt-2 text-xs text-red-400 font-bold opacity-0 transition-opacity">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>-3s on wrong answer
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="startGame()" class="w-full max-w-md py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-display font-bold text-xl rounded-xl transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(236,72,153,0.4)]">
+                    <i class="fas fa-play mr-2"></i> PLAY NOW
+                </button>
+
+                <div class="mt-8 flex justify-center gap-6">
+                    <button onclick="switchScreen('dashboard')" class="text-gray-400 hover:text-white text-sm underline decoration-cyan-500 underline-offset-4">View Dashboard</button>
+                    <button onclick="showLeaderboard()" class="text-gray-400 hover:text-white text-sm underline decoration-yellow-500 underline-offset-4">Global Leaderboard</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-screen" class="hidden-screen screen-content glass-panel p-6 md:p-10 shadow-2xl shadow-pink-500/20 relative overflow-hidden flex flex-col">
+            <!-- Progress Bar (Top) -->
+            <div class="absolute top-0 left-0 w-full h-1 bg-gray-800">
+                <div id="progress-bar" class="h-full bg-cyan-500 transition-all duration-300" style="width: 0%"></div>
+            </div>
+
+            <div class="absolute top-1 left-0 w-full h-1 bg-gray-900 z-10">
+                <div id="countdown-bar" class="h-full bg-gradient-to-r from-green-500 to-yellow-500 w-full transition-all duration-1000 ease-linear"></div>
+            </div>
+
+            <div id="penalty-notification" class="absolute top-16 left-1/2 -translate-x-1/2 z-20 hidden">
+                <div class="bg-red-500/20 border border-red-500 text-red-400 px-6 py-3 rounded-lg font-bold flex items-center gap-2 penalty-anim text-lg">
+                    <i class="fas fa-minus-circle"></i> -3 SECONDS PENALTY!
+                </div>
+            </div>
+
+            <div class="absolute top-4 right-4 z-30">
+                <button onclick="togglePause()" class="w-10 h-10 bg-black/50 border border-white/20 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors">
+                    <i class="fas fa-pause text-white"></i>
+                </button>
+            </div>
+
+            <div class="flex justify-between items-end mb-6 mt-3 border-b border-white/10 pb-4">
+                <div class="text-left">
+                    <div class="text-xs text-gray-400 uppercase tracking-widest">Question</div>
+                    <div class="font-display text-2xl text-white"><span id="current-q">1</span><span class="text-gray-600 text-lg">/10</span></div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xs text-gray-400 uppercase tracking-widest">Score</div>
+                    <div id="score-display" class="font-display text-3xl text-cyan-400 neon-text-cyan">0</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-gray-400 uppercase tracking-widest">Time Left</div>
+                    <div id="time-display" class="font-display text-2xl text-white">00</div>
+                </div>
+            </div>
+
+            <div class="flex-1 flex items-center justify-center mb-8 relative">
+                <div id="question-container" class="slide-up flex items-center justify-center gap-4 flex-wrap">
+                    <span id="num1" class="font-display text-7xl md:text-9xl font-bold text-white">0</span>
+                    <span id="operator" class="font-display text-6xl md:text-8xl font-bold text-pink-500 neon-text-pink">+</span>
+                    <span id="num2" class="font-display text-7xl md:text-9xl font-bold text-white">0</span>
+                </div>
+                
+                <!-- Feedback Overlay -->
+                <div id="feedback" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 transform scale-50 transition-all duration-300 z-10">
+                    <span class="font-display text-6xl font-black"></span>
+                </div>
+            </div>
+
+            <div class="relative max-w-md mx-auto w-full mb-8">
+                <input type="number" id="answer-input" 
+                    class="w-full bg-black/50 border-2 border-gray-700 rounded-xl py-4 text-center font-display text-4xl md:text-5xl text-white focus:outline-none focus:border-pink-500 focus:shadow-[0_0_20px_rgba(236,72,153,0.4)] transition-all placeholder-gray-800"
+                    placeholder="?" autocomplete="off">
+                <div class="mt-2 text-center text-xs text-gray-500">Press ENTER to submit</div>
+            </div>
+        </div>
+
+        <div id="end-screen" class="hidden-screen screen-content glass-panel p-8 md:p-12 text-center shadow-2xl shadow-green-500/20 pop-in flex flex-col items-center justify-center relative">
+            <!-- BACK BUTTON TO MENU -->
+            <div class="absolute top-6 left-6">
+                <button onclick="switchScreen('menu')" class="text-xs text-cyan-400 hover:text-cyan-300 border border-cyan-900 bg-cyan-900/20 px-4 py-2 rounded uppercase tracking-wider flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i> Back to Menu
+                </button>
+            </div>
+
+            <h2 class="font-display text-4xl md:text-6xl font-bold text-white mb-1">MISSION COMPLETE</h2>
+            <p class="text-gray-400 text-lg mb-8">Results Recorded to Database</p>
+
+            <div class="grid grid-cols-2 gap-6 mb-8 max-w-2xl w-full">
+                <div class="bg-black/30 p-6 rounded-lg border border-white/5">
+                    <div class="text-gray-400 text-xs uppercase">Final Score</div>
+                    <div id="final-score" class="font-display text-5xl text-cyan-400 neon-text-cyan">0</div>
+                </div>
+                <div class="bg-black/30 p-6 rounded-lg border border-white/5">
+                    <div class="text-gray-400 text-xs uppercase">Accuracy</div>
+                    <div id="final-accuracy" class="font-display text-5xl text-pink-400">0%</div>
+                </div>
+                <div class="bg-black/30 p-6 rounded-lg border border-white/5">
+                    <div class="text-gray-400 text-xs uppercase">Time Result</div>
+                    <div id="final-time-result" class="font-display text-4xl text-yellow-400">0s</div>
+                </div>
+                <div class="bg-black/30 p-6 rounded-lg border border-white/5">
+                    <div class="text-gray-400 text-xs uppercase">Rank</div>
+                    <div id="final-rank" class="font-display text-5xl font-black text-yellow-400">S</div>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4 justify-center">
+                <button onclick="resetGame()" class="px-8 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-display font-bold text-lg rounded-full transition-all hover:scale-105 hover:shadow-[0_0_20px_rgba(6,182,212,0.5)]">
+                    PLAY AGAIN
+                </button>
+                <button onclick="showLeaderboard()" class="px-8 py-3 border border-purple-500 text-purple-400 hover:bg-purple-500/20 font-display font-bold text-lg rounded-full transition-all">
+                    LEADERBOARD
+                </button>
+                <button onclick="switchScreen('dashboard')" class="px-8 py-3 border border-blue-500 text-blue-400 hover:bg-blue-500/20 font-display font-bold text-lg rounded-full transition-all">
+                    DASHBOARD
+                </button>
+            </div>
+        </div>
+
+        <div id="leaderboard-screen" class="hidden-screen screen-content glass-panel p-6 md:p-8 shadow-2xl shadow-yellow-500/20 pop-in flex flex-col">
+            <div class="flex justify-between items-center mb-6">
+                <button onclick="switchScreen('menu')" class="text-xs text-cyan-400 hover:text-cyan-300 border border-cyan-900 bg-cyan-900/20 px-4 py-2 rounded uppercase tracking-wider flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i> Back to Menu
+                </button>
+                <h2 class="font-display text-2xl font-bold text-white">GLOBAL LEADERBOARD</h2>
+                <div class="w-24"></div>
+            </div>
+
+            <div class="flex gap-2 mb-4 text-xs uppercase tracking-wider text-gray-500 border-b border-white/10 pb-2">
+                <div class="w-12 text-center">#</div>
+                <div class="flex-1">Player Name</div>
+                <div class="w-20 text-center">Diff</div>
+                <div class="w-20 text-center">Time</div>
+                <div class="w-20 text-right">Score</div>
+            </div>
+
+            <div id="leaderboard-list" class="flex-1 overflow-y-auto space-y-2 pr-2">
+                <!-- Leaderboard items injected here -->
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-white/10 flex justify-end">
+                <button onclick="confirmResetLeaderboard()" class="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(220,38,38,0.5)] hover:shadow-[0_0_25px_rgba(220,38,38,0.7)]">
+                    <i class="fas fa-trash-alt"></i> RESET ALL RECORDS
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="pause-menu" class="pause-overlay hidden-screen">
+        <div class="glass-panel p-8 rounded-2xl border border-cyan-500/30 max-w-sm w-full mx-4 text-center">
+            <h2 class="font-display text-3xl font-bold text-white mb-6">PAUSED</h2>
+            <div class="space-y-3">
+                <button onclick="resumeGame()" class="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition-all">
+                    <i class="fas fa-play mr-2"></i> RESUME
+                </button>
+                <button onclick="confirmResetFromPause()" class="w-full py-3 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded-lg transition-all">
+                    <i class="fas fa-redo mr-2"></i> RESTART
+                </button>
+                <button onclick="confirmExitFromPause()" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-all">
+                    <i class="fas fa-sign-out-alt mr-2"></i> EXIT TO MENU
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="exit-confirm" class="pause-overlay hidden-screen">
+        <div class="glass-panel p-6 rounded-2xl border border-red-500/30 max-w-sm w-full mx-4 text-center">
+            <h3 class="font-display text-xl font-bold text-white mb-2">Exit Game?</h3>
+            <p class="text-gray-400 text-sm mb-6">Your progress will be lost.</p>
+            <div class="flex gap-3">
+                <button onclick="cancelExit()" class="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition-all">CANCEL</button>
+                <button onclick="confirmExitYes()" class="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-all">EXIT</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reset-leaderboard-confirm" class="pause-overlay hidden-screen">
+        <div class="glass-panel p-6 rounded-2xl border border-red-500/30 max-w-md w-full mx-4 text-center">
+            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="font-display text-xl font-bold text-white mb-2">Reset All Records?</h3>
+            <p class="text-gray-400 text-sm mb-6">This will permanently delete ALL game records and user data. This action cannot be undone.</p>
+            <div class="flex gap-3">
+                <button onclick="cancelResetLeaderboard()" class="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition-all">CANCEL</button>
+                <button onclick="executeResetLeaderboard()" class="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-lg transition-all">YES, RESET ALL</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="pause-overlay hidden-screen">
+        <div class="glass-panel p-6 rounded-2xl border border-purple-500/30 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-display text-2xl font-bold text-white">SETTINGS</h2>
+                <button onclick="closeSettings()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-cyan-400 font-bold text-lg mb-4 flex items-center">
+                    <i class="fas fa-user-cog mr-2"></i> Account Settings
+                </h3>
+                <div class="space-y-2">
+                    <button onclick="openEditUsername()" class="w-full flex items-center justify-between p-3 bg-black/40 border border-white/10 rounded-lg hover:border-purple-500/50 transition-all group">
+                        <span class="text-gray-300">Edit Username</span>
+                        <i class="fas fa-chevron-right text-gray-600 group-hover:text-purple-400"></i>
+                    </button>
+                    <button onclick="openChangePassword()" class="w-full flex items-center justify-between p-3 bg-black/40 border border-white/10 rounded-lg hover:border-purple-500/50 transition-all group">
+                        <span class="text-gray-300">Change Password</span>
+                        <i class="fas fa-chevron-right text-gray-600 group-hover:text-purple-400"></i>
+                    </button>
+                    <button onclick="openProfileInfo()" class="w-full flex items-center justify-between p-3 bg-black/40 border border-white/10 rounded-lg hover:border-purple-500/50 transition-all group">
+                        <span class="text-gray-300">Profile Information</span>
+                        <i class="fas fa-chevron-right text-gray-600 group-hover:text-purple-400"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-cyan-400 font-bold text-lg mb-4 flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i> About
+                </h3>
+                <div class="bg-black/40 border border-white/10 rounded-lg p-4">
+                    <h4 class="text-white font-bold mb-2">Our Vision</h4>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Math Blitz aims to revolutionize mental math training by combining the thrill of gaming with educational excellence. We envision a world where learners of all ages can sharpen their mathematical skills through engaging, high-speed challenges that make learning addictive and fun.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-pink-400 font-bold text-lg mb-4 flex items-center">
+                    <i class="fas fa-users mr-2"></i> Group Members
+                </h3>
+                <div class="bg-black/40 border border-white/10 rounded-lg p-4">
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div class="text-gray-300">• Arjel</div>
+                        <div class="text-gray-300">• Clent Gajelloma</div>
+                        <div class="text-gray-300">• Daren Ulep</div>
+                        <div class="text-gray-300">• Jonard Neri</div>
+                        <div class="text-gray-300">• Joshua Hibon Perocho</div>
+                        <div class="text-gray-300">• Kier A. Aure</div>
+                        <div class="text-gray-300">• Lee Jhen</div>
+                        <div class="text-gray-300">• Lyka Javier</div>
+                        <div class="text-gray-300">• Norhannah Ali</div>
+                        <div class="text-gray-300">• Rechelle Sabatin</div>
+                        <div class="text-gray-300">• Russel Lamson</div>
+                        <div class="text-gray-300">• Sotea LJ</div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeSettings()" class="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition-all">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <div id="edit-username-modal" class="pause-overlay hidden-screen">
+        <div class="glass-panel p-6 rounded-2xl border border-purple-500/30 max-w-sm w-full mx-4">
+            <h3 class="font-display text-2xl font-bold text-white mb-4">Edit Username</h3>
+            <input type="text" id="new-username-input" placeholder="New Username" class="w-full bg-black/50 border border-gray-700 rounded-lg p-4 text-white text-lg focus:border-purple-500 focus:outline-none transition-colors mb-4">
+            <div id="edit-username-error" class="text-red-500 text-sm mb-4 hidden"></div>
+            <div class="flex gap-3">
+                <button onclick="closeEditUsername()" class="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition-all">Cancel</button>
+                <button onclick="saveNewUsername()" class="flex-1 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg transition-all">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="change-password-modal" class="pause-overlay hidden-screen">
+        <div class="glass-panel p-6 rounded-2xl border border-purple-500/30 max-w-sm w-full mx-4">
+            <h3 class="font-display text-2xl font-bold text-white mb-4">Change Password</h3>
+            <div class="space-y-3 mb-4">
+                <input type="password" id="current-password-input" placeholder="Current Password" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white focus:border-purple-500 focus:outline-none transition-colors">
+                <input type="password" id="new-password-input" placeholder="New Password" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white focus:border-purple-500 focus:outline-none transition-colors">
+                <input type="password" id="confirm-new-password-input" placeholder="Confirm New Password" class="w-full bg-black/50 border border-gray-700 rounded-lg p-3 text-white focus:border-purple-500 focus:outline-none transition-colors">
+            </div>
+            <div id="change-password-error" class="text-red-500 text-sm mb-4 hidden"></div>
+            <div class="flex gap-3">
+                <button onclick="closeChangePassword()" class="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition-all">Cancel</button>
+                <button onclick="saveNewPassword()" class="flex-1 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg transition-all">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-info-modal" class="pause-overlay hidden-screen">
+        <div class="glass-panel p-6 rounded-2xl border border-purple-500/30 max-w-sm w-full mx-4">
+            <h3 class="font-display text-2xl font-bold text-white mb-4">Profile Information</h3>
+            <div class="space-y-4 mb-6">
+                <div class="bg-black/40 border border-white/10 rounded-lg p-4">
+                    <div class="text-xs text-gray-500 uppercase mb-1">Username</div>
+                    <div id="profile-username" class="text-cyan-400 font-bold text-lg"></div>
+                </div>
+                <div class="bg-black/40 border border-white/10 rounded-lg p-4">
+                    <div class="text-xs text-gray-500 uppercase mb-1">Account Created</div>
+                    <div id="profile-created" class="text-gray-300"></div>
+                </div>
+                <div class="bg-black/40 border border-white/10 rounded-lg p-4">
+                    <div class="text-xs text-gray-500 uppercase mb-1">Total Games Played</div>
+                    <div id="profile-total-games" class="text-purple-400 font-bold"></div>
+                </div>
+            </div>
+            <button onclick="closeProfileInfo()" class="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-lg transition-all">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            currentUser: null,
+            difficulty: 'easy',
+            score: 0,
+            questionNumber: 0,
+            totalQuestions: 10,
+            timeLeft: 30,
+            maxTime: 30,
+            startTime: 0,
+            actualTimeUsed: 0,
+            timerInterval: null,
+            currentAnswer: 0,
+            gameData: {
+                correct: 0,
+                wrong: 0
+            },
+            previousScreen: null,
+            isPaused: false
+        };
+
+        const difficultySettings = {
+            easy: { time: 30, label: '30s', penalty: 0 },
+            medium: { time: 50, label: '50s', penalty: 3 },
+            hard: { time: 60, label: '60s', penalty: 3 }
+        };
+
+        const DB = {
+            getUsers: () => JSON.parse(localStorage.getItem('math_blitz_users') || '{}'),
+            saveUser: (username, password) => {
+                const users = DB.getUsers();
+                if (users[username]) return false;
+                users[username] = { 
+                    password, 
+                    history: [],
+                    createdAt: new Date().toISOString(),
+                    stats: {
+                        totalGames: 0,
+                        highScore: 0,
+                        totalCorrect: 0,
+                        totalWrong: 0,
+                        bestRank: null
+                    }
+                };
+                localStorage.setItem('math_blitz_users', JSON.stringify(users));
+                return true;
+            },
+            validateUser: (username, password) => {
+                const users = DB.getUsers();
+                return users[username] && users[username].password === password;
+            },
+            updateUsername: (oldUsername, newUsername) => {
+                const users = DB.getUsers();
+                if (users[newUsername]) return false;
+                if (!users[oldUsername]) return false;
+
+                users[newUsername] = users[oldUsername];
+                delete users[oldUsername];
+                localStorage.setItem('math_blitz_users', JSON.stringify(users));
+                return true;
+            },
+            updatePassword: (username, newPassword) => {
+                const users = DB.getUsers();
+                if (!users[username]) return false;
+                users[username].password = newPassword;
+                localStorage.setItem('math_blitz_users', JSON.stringify(users));
+                return true;
+            },
+            resetAllData: () => {
+                localStorage.removeItem('math_blitz_users');
+                return true;
+            },
+            recordGame: (username, result) => {
+                const users = DB.getUsers();
+                if (users[username]) {
+                    users[username].history.unshift(result);
+                    if (users[username].history.length > 50) users[username].history.pop();
+                   
+                    const stats = users[username].stats;
+                    stats.totalGames++;
+                    if (result.score > stats.highScore) stats.highScore = result.score;
+                    stats.totalCorrect += result.correct;
+                    stats.totalWrong += result.wrong;
+                
+                    const rankOrder = { 'S': 6, 'A': 5, 'B': 4, 'C': 3, 'D': 2, 'F': 1 };
+                    const currentRankVal = rankOrder[result.rank] || 0;
+                    const bestRankVal = rankOrder[stats.bestRank] || 0;
+                    if (currentRankVal > bestRankVal) stats.bestRank = result.rank;
+                    
+                    localStorage.setItem('math_blitz_users', JSON.stringify(users));
+                }
+            },
+            getUserStats: (username) => {
+                const users = DB.getUsers();
+                if (!users[username]) return null;
+                const user = users[username];
+                const history = user.history || [];
+                const stats = user.stats || {};
+            
+                let avgAccuracy = 0;
+                if (history.length > 0) {
+                    const totalAcc = history.reduce((sum, game) => sum + (game.accuracy || 0), 0);
+                    avgAccuracy = Math.round(totalAcc / history.length);
+                }
+                
+                return {
+                    totalGames: stats.totalGames || 0,
+                    highScore: stats.highScore || 0,
+                    avgAccuracy: avgAccuracy,
+                    bestRank: stats.bestRank || '-',
+                    recentGames: history.slice(0, 5),
+                    createdAt: user.createdAt
+                };
+            },
+            getLeaderboard: () => {
+                const users = DB.getUsers();
+                let allGames = [];
+                Object.keys(users).forEach(user => {
+                    users[user].history.forEach(game => {
+                        allGames.push({ ...game, username: user });
+                    });
+                });
+                return allGames.sort((a, b) => b.score - a.score || a.timeResult - b.timeResult).slice(0, 50);
+            }
+        };
+
+        const screens = {
+            auth: document.getElementById('auth-screen'),
+            dashboard: document.getElementById('dashboard-screen'),
+            menu: document.getElementById('menu-screen'),
+            game: document.getElementById('game-screen'),
+            end: document.getElementById('end-screen'),
+            leaderboard: document.getElementById('leaderboard-screen')
+        };
+
+        const display = {
+            user: document.getElementById('user-display'),
+            score: document.getElementById('score-display'),
+            time: document.getElementById('time-display'),
+            currentQ: document.getElementById('current-q'),
+            progressBar: document.getElementById('progress-bar'),
+            countdownBar: document.getElementById('countdown-bar'),
+            num1: document.getElementById('num1'),
+            num2: document.getElementById('num2'),
+            operator: document.getElementById('operator'),
+            input: document.getElementById('answer-input'),
+            feedback: document.getElementById('feedback'),
+            finalScore: document.getElementById('final-score'),
+            finalAccuracy: document.getElementById('final-accuracy'),
+            finalTimeResult: document.getElementById('final-time-result'),
+            finalRank: document.getElementById('final-rank'),
+            leaderboardList: document.getElementById('leaderboard-list'),
+            penaltyNotification: document.getElementById('penalty-notification')
+        };
+
+        function checkPasswordStrength() {
+            const password = document.getElementById('reg-password').value;
+            const bar = document.getElementById('password-strength-bar');
+            
+            const hasLength = password.length >= 8;
+            const hasUpper = /[A-Z]/.test(password);
+            const hasLower = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+            
+            // Update policy indicators
+            updatePolicyItem('policy-length', hasLength);
+            updatePolicyItem('policy-upper', hasUpper);
+            updatePolicyItem('policy-lower', hasLower);
+            updatePolicyItem('policy-number', hasNumber);
+            updatePolicyItem('policy-special', hasSpecial);
+   
+            let strength = 0;
+            if (hasLength) strength++;
+            if (hasUpper) strength++;
+            if (hasLower) strength++;
+            if (hasNumber) strength++;
+            if (hasSpecial) strength++;
+                
+            const width = (strength / 5) * 100;
+            bar.style.width = width + '%';
+            
+            if (strength <= 2) {
+                bar.className = 'password-strength bg-red-500';
+            } else if (strength <= 4) {
+                bar.className = 'password-strength bg-yellow-500';
+            } else {
+                bar.className = 'password-strength bg-green-500';
+            }
+            
+            return strength === 5;
+        }
+
+        function updatePolicyItem(id, met) {
+            const el = document.getElementById(id);
+            const icon = el.querySelector('i');
+            if (met) {
+                el.classList.remove('policy-unmet');
+                el.classList.add('policy-met');
+                icon.className = 'fas fa-check mr-1';
+            } else {
+                el.classList.remove('policy-met');
+                el.classList.add('policy-unmet');
+                icon.className = 'fas fa-times mr-1';
+            }
+        }
+
+        function validatePasswordPolicy(password) {
+            if (password.length < 8) return "Password must be at least 8 characters";
+            if (!/[A-Z]/.test(password)) return "Password must contain an uppercase letter";
+            if (!/[a-z]/.test(password)) return "Password must contain a lowercase letter";
+            if (!/[0-9]/.test(password)) return "Password must contain a number";
+            if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return "Password must contain a special character";
+            return null;
+        }
+
+        function showLoginForm() {
+            document.getElementById('login-form').classList.remove('hidden-screen');
+            document.getElementById('register-form').classList.add('hidden-screen');
+            clearAuthErrors();
+        }
+
+        function showRegisterForm() {
+            document.getElementById('login-form').classList.add('hidden-screen');
+            document.getElementById('register-form').classList.remove('hidden-screen');
+            clearAuthErrors();
+        }
+
+        function clearAuthErrors() {
+            document.getElementById('login-error').classList.add('opacity-0');
+            document.getElementById('reg-error').classList.add('opacity-0');
+        }
+
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        function showError(form, msg) {
+            const el = document.getElementById(form === 'login' ? 'login-error' : 'reg-error');
+            el.innerText = msg;
+            el.classList.remove('opacity-0');
+            setTimeout(() => el.classList.add('opacity-0'), 3000);
+        }
+
+        function showSuccessNotification() {
+            const notification = document.getElementById('success-notification');
+            notification.classList.remove('hidden-screen');
+            
+            setTimeout(() => {
+                notification.classList.add('hidden-screen');
+                showLoginForm();
+            }, 2000);
+        }
+
+        function handleRegister() {
+            const user = document.getElementById('reg-username').value.trim();
+            const pass = document.getElementById('reg-password').value;
+            const confirmPass = document.getElementById('reg-confirm-password').value;
+
+            if (!user || !pass || !confirmPass) return showError('reg', "Fill in all fields");
+           
+            const policyError = validatePasswordPolicy(pass);
+            if (policyError) return showError('reg', policyError);
+            
+            if (pass !== confirmPass) return showError('reg', "Passwords do not match");
+            
+            if (DB.saveUser(user, pass)) {
+                document.getElementById('reg-username').value = '';
+                document.getElementById('reg-password').value = '';
+                document.getElementById('reg-confirm-password').value = '';
+                document.getElementById('password-strength-bar').style.width = '0%';
+               
+                ['policy-length', 'policy-upper', 'policy-lower', 'policy-number', 'policy-special'].forEach(id => {
+                    updatePolicyItem(id, false);
+                });
+                
+                showSuccessNotification();
+            } else {
+                showError('reg', "Username already exists");
+            }
+        }
+
+        function handleLogin() {
+            const user = document.getElementById('login-username').value.trim();
+            const pass = document.getElementById('login-password').value;
+
+            if (!user || !pass) return showError('login', "Enter credentials");
+
+            if (DB.validateUser(user, pass)) {
+                state.currentUser = user;
+                display.user.innerText = user;
+                
+                state.previousScreen = 'auth'; // First login, no back button
+                switchScreen('menu');
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-password').value = '';
+            } else {
+                showError('login', "Invalid credentials");
+            }
+        }
+
+        function logout() {
+            state.currentUser = null;
+            state.previousScreen = null;
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            showLoginForm();
+            switchScreen('auth');
+        }
+
+        function loadDashboard() {
+            if (!state.currentUser) return;
+            
+            const stats = DB.getUserStats(state.currentUser);
+            if (!stats) return;
+            
+            document.getElementById('dashboard-user').innerText = state.currentUser;
+            document.getElementById('dash-total-games').innerText = stats.totalGames;
+            document.getElementById('dash-high-score').innerText = stats.highScore;
+            document.getElementById('dash-avg-accuracy').innerText = stats.avgAccuracy + '%';
+            document.getElementById('dash-best-rank').innerText = stats.bestRank;
+         
+            const historyList = document.getElementById('recent-history-list');
+            historyList.innerHTML = '';
+            
+            if (stats.recentGames.length === 0) {
+                historyList.innerHTML = '<div class="text-center text-gray-600 text-sm py-4">No games played yet</div>';
+            } else {
+                stats.recentGames.forEach((game, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between p-2 rounded bg-white/5 text-sm';
+                    
+                    let diffColor = 'text-gray-400';
+                    if (game.difficulty === 'easy') diffColor = 'text-green-400';
+                    if (game.difficulty === 'medium') diffColor = 'text-yellow-400';
+                    if (game.difficulty === 'hard') diffColor = 'text-red-400';
+                    
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-500">#${index + 1}</span>
+                            <span class="${diffColor} uppercase text-xs font-bold">${game.difficulty}</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-cyan-400 font-display">${game.score} pts</span>
+                            <span class="text-gray-500 text-xs">${game.accuracy}% acc</span>
+                        </div>
+                    `;
+                    historyList.appendChild(item);
+                });
+            }
+        }
+
+        function switchScreen(screenName) {
+            // Track previous screen before switching
+            const currentScreen = Object.keys(screens).find(key => !screens[key].classList.contains('hidden-screen'));
+            if (currentScreen && currentScreen !== screenName) {
+                state.previousScreen = currentScreen;
+            }
+            
+            Object.values(screens).forEach(s => s.classList.add('hidden-screen'));
+            screens[screenName].classList.remove('hidden-screen');
+            
+            if (screenName === 'game') {
+                setTimeout(() => display.input.focus(), 100);
+            }
+            
+            if (screenName === 'menu') {
+                // Hide penalty indicators initially
+                document.getElementById('medium-penalty').classList.remove('opacity-100');
+                document.getElementById('medium-penalty').classList.add('opacity-0');
+                document.getElementById('hard-penalty').classList.remove('opacity-100');
+                document.getElementById('hard-penalty').classList.add('opacity-0');
+            }
+            
+            if (screenName === 'dashboard') {
+                loadDashboard();
+            }
+        }
+
+        function selectDifficulty(level, element) {
+            state.difficulty = level;
+            document.querySelectorAll('.difficulty-card').forEach(div => {
+                div.classList.remove('border-cyan-500', 'shadow-[0_0_15px_rgba(6,182,212,0.3)]');
+                div.classList.add('border-white/10');
+                // Hide all penalty indicators first
+                const penaltyDiv = div.querySelector('[id$="-penalty"]');
+                if (penaltyDiv) {
+                    penaltyDiv.classList.remove('opacity-100');
+                    penaltyDiv.classList.add('opacity-0');
+                }
+            });
+            element.classList.remove('border-white/10');
+            element.classList.add('border-cyan-500', 'shadow-[0_0_15px_rgba(6,182,212,0.3)]');
+           
+            const penaltyDiv = element.querySelector('[id$="-penalty"]');
+            if (penaltyDiv && difficultySettings[level].penalty > 0) {
+                penaltyDiv.classList.remove('opacity-0');
+                penaltyDiv.classList.add('opacity-100');
+            }
+        }
+
+        function startGame() {
+            state.score = 0;
+            state.questionNumber = 0;
+            state.gameData = { correct: 0, wrong: 0 };
+            state.maxTime = difficultySettings[state.difficulty].time;
+            state.timeLeft = state.maxTime;
+            state.startTime = Date.now();
+            state.actualTimeUsed = 0;
+            state.isPaused = false;
+            
+            display.score.innerText = '0';
+            display.time.innerText = state.timeLeft;
+            display.input.value = '';
+            display.countdownBar.style.width = '100%';
+            display.countdownBar.className = 'h-full w-full transition-all duration-1000 ease-linear bg-gradient-to-r from-green-500 to-yellow-500';
+            display.penaltyNotification.classList.add('hidden');
+            
+            switchScreen('game');
+            startTimer();
+            nextQuestion();
+        }
+
+        function startTimer() {
+            clearInterval(state.timerInterval);
+            state.timerInterval = setInterval(() => {
+                if (state.isPaused) return;
+                
+                state.timeLeft--;
+                display.time.innerText = state.timeLeft;
+                
+                const percentage = (state.timeLeft / state.maxTime) * 100;
+                display.countdownBar.style.width = `${percentage}%`;
+                
+                if (percentage < 30) {
+                    display.countdownBar.className = 'h-full w-full transition-all duration-1000 ease-linear bg-red-500';
+                } else if (percentage < 60) {
+                    display.countdownBar.className = 'h-full w-full transition-all duration-1000 ease-linear bg-gradient-to-r from-yellow-500 to-orange-500';
+                }
+
+                if (state.timeLeft <= 0) {
+                    state.actualTimeUsed = Math.floor((Date.now() - state.startTime) / 1000);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function applyTimePenalty() {
+            const penalty = difficultySettings[state.difficulty].penalty;
+            if (penalty > 0) {
+                state.timeLeft = Math.max(0, state.timeLeft - penalty);
+                display.time.innerText = state.timeLeft;
+                
+                // Show penalty notification
+                display.penaltyNotification.classList.remove('hidden');
+                setTimeout(() => {
+                    display.penaltyNotification.classList.add('hidden');
+                }, 1500);
+                
+                // Update countdown bar immediately
+                const percentage = (state.timeLeft / state.maxTime) * 100;
+                display.countdownBar.style.width = `${percentage}%`;
+                
+                // Check if penalty caused time to run out
+                if (state.timeLeft <= 0) {
+                    state.actualTimeUsed = Math.floor((Date.now() - state.startTime) / 1000);
+                    endGame();
+                }
+            }
+        }
+
+        function nextQuestion() {
+            if (state.questionNumber >= state.totalQuestions) {
+                state.actualTimeUsed = Math.floor((Date.now() - state.startTime) / 1000);
+                endGame();
+                return;
+            }
+
+            state.questionNumber++;
+            display.currentQ.innerText = state.questionNumber;
+            display.progressBar.style.width = `${((state.questionNumber - 1) / state.totalQuestions) * 100}%`;
+            
+            generateQuestionLogic();
+            
+            const container = document.getElementById('question-container');
+            container.classList.remove('slide-up');
+            void container.offsetWidth; 
+            container.classList.add('slide-up');
+            
+            display.input.value = '';
+            display.input.focus();
+        }
+
+        function generateQuestionLogic() {
+            const diff = state.difficulty;
+            let n1, n2, op, answer;
+            const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+            if (diff === 'easy') {
+                op = Math.random() > 0.5 ? '+' : '-';
+                n1 = rand(1, 10);
+                n2 = rand(1, 10);
+                if (op === '-' && n2 > n1) [n1, n2] = [n2, n1];
+                answer = op === '+' ? n1 + n2 : n1 - n2;
+
+            } else if (diff === 'medium') {
+                const r = Math.random();
+                if (r < 0.33) {
+                    op = '+';
+                    n1 = rand(1, 10); n2 = rand(1, 10);
+                    answer = n1 + n2;
+                } else if (r < 0.66) {
+                    op = '-';
+                    n1 = rand(1, 10); n2 = rand(1, 10);
+                    if (n2 > n1) [n1, n2] = [n2, n1];
+                    answer = n1 - n2;
+                } else {
+                    op = '*';
+                    n1 = rand(1, 5);
+                    n2 = rand(1, 10);
+                    answer = n1 * n2;
+                }
+
+            } else {
+                const r = Math.random();
+                if (r < 0.25) {
+                    op = '+';
+                    n1 = rand(1, 10); n2 = rand(1, 10);
+                    answer = n1 + n2;
+                } else if (r < 0.5) {
+                    op = '-';
+                    n1 = rand(1, 10); n2 = rand(1, 10);
+                    if (n2 > n1) [n1, n2] = [n2, n1];
+                    answer = n1 - n2;
+                } else if (r < 0.75) {
+                    op = '*';
+                    n1 = rand(1, 10);
+                    n2 = rand(1, 10);
+                    answer = n1 * n2;
+                } else {
+                    op = '/';
+                    const factor = rand(2, 10);
+                    answer = rand(1, 10);
+                    n1 = factor * answer;
+                    n2 = factor;
+                }
+            }
+
+            state.currentAnswer = answer;
+            display.num1.innerText = n1;
+            display.num2.innerText = n2;
+            
+            const symbols = { '+': '+', '-': '-', '*': '×', '/': '÷' };
+            display.operator.innerText = symbols[op];
+            display.operator.className = `font-display text-5xl md:text-6xl font-bold neon-text-pink ${op === '*' || op === '/' ? 'text-red-500' : 'text-pink-500'}`;
+        }
+
+        function handleInput(e) {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        }
+
+        function checkAnswer() {
+            const userVal = parseInt(display.input.value);
+            if (isNaN(userVal)) return;
+
+            const isCorrect = userVal === state.currentAnswer;
+            
+            if (isCorrect) {
+                state.score += 100;
+                state.gameData.correct++;
+                showFeedback(true);
+            } else {
+                state.gameData.wrong++;
+                showFeedback(false);
+                screens.game.classList.add('shake');
+                setTimeout(() => screens.game.classList.remove('shake'), 500);
+                
+                applyTimePenalty();
+            }
+
+            display.score.innerText = state.score;
+            setTimeout(nextQuestion, 800);
+        }
+
+        function showFeedback(isCorrect) {
+            const fb = display.feedback;
+            fb.innerHTML = isCorrect 
+                ? '<span class="text-green-400 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]"><i class="fas fa-check"></i></span>' 
+                : '<span class="text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]"><i class="fas fa-times"></i></span>';
+            
+            fb.classList.remove('opacity-0', 'scale-50');
+            fb.classList.add('opacity-100', 'scale-125');
+            
+            setTimeout(() => {
+                fb.classList.remove('opacity-100', 'scale-125');
+                fb.classList.add('opacity-0', 'scale-50');
+            }, 600);
+        }
+
+        function endGame() {
+            clearInterval(state.timerInterval);
+            
+            const endTime = Date.now();
+            const actualTimeUsed = Math.floor((endTime - state.startTime) / 1000);
+            const timeResult = state.timeLeft <= 0 ? state.maxTime : actualTimeUsed;
+            
+            const total = state.gameData.correct + state.gameData.wrong;
+            const accuracy = total === 0 ? 0 : Math.round((state.gameData.correct / total) * 100);
+            
+            let rank = 'F';
+            let color = 'text-gray-500';
+            if (state.score >= 1000) { rank = 'S'; color = 'text-yellow-400'; }
+            else if (state.score >= 800) { rank = 'A'; color = 'text-green-400'; }
+            else if (state.score >= 600) { color = 'text-blue-400'; rank = 'B'; }
+            else if (state.score >= 400) { color = 'text-purple-400'; rank = 'C'; }
+            else { color = 'text-red-400'; rank = 'D'; }
+
+            display.finalScore.innerText = state.score;
+            display.finalAccuracy.innerText = `${accuracy}%`;
+            display.finalTimeResult.innerText = `${timeResult}s`;
+            display.finalRank.innerText = rank;
+            display.finalRank.className = `font-display text-5xl font-black ${color} drop-shadow-lg`;
+
+            const result = {
+                date: new Date().toISOString(),
+                score: state.score,
+                difficulty: state.difficulty,
+                accuracy: accuracy,
+                timeResult: timeResult,
+                correct: state.gameData.correct,
+                wrong: state.gameData.wrong,
+                rank: rank
+            };
+            DB.recordGame(state.currentUser, result);
+
+            switchScreen('end');
+        }
+
+        function resetGame() {
+            switchScreen('menu');
+        }
+
+        function showLeaderboard() {
+            const list = display.leaderboardList;
+            list.innerHTML = '';
+            
+            const scores = DB.getLeaderboard();
+            
+            if (scores.length === 0) {
+                list.innerHTML = '<div class="text-center text-gray-500 py-10">No data available</div>';
+            } else {
+                scores.forEach((entry, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-2 p-3 rounded bg-white/5 border border-white/5 hover:bg-white/10 transition-colors';
+                    
+                    let rankClass = 'text-gray-500';
+                    if (index === 0) rankClass = 'text-yellow-400';
+                    if (index === 1) rankClass = 'text-gray-300';
+                    if (index === 2) rankClass = 'text-amber-600';
+
+                    let diffColor = 'text-gray-400';
+                    if (entry.difficulty === 'easy') diffColor = 'text-green-400';
+                    if (entry.difficulty === 'medium') diffColor = 'text-yellow-400';
+                    if (entry.difficulty === 'hard') diffColor = 'text-red-400';
+
+                    row.innerHTML = `
+                        <div class="w-8 text-center font-display font-bold ${rankClass}">#${index + 1}</div>
+                        <div class="flex-1 font-bold truncate">${entry.username}</div>
+                        <div class="w-20 text-center text-xs uppercase font-bold ${diffColor}">${entry.difficulty}</div>
+                        <div class="w-20 text-center text-xs text-gray-400">${entry.timeResult}s</div>
+                        <div class="w-20 text-right font-display text-cyan-400">${entry.score}</div>
+                    `;
+                    list.appendChild(row);
+                });
+            }
+            
+            switchScreen('leaderboard');
+        }
+
+        function confirmResetLeaderboard() {
+            document.getElementById('reset-leaderboard-confirm').classList.remove('hidden-screen');
+        }
+
+        function cancelResetLeaderboard() {
+            document.getElementById('reset-leaderboard-confirm').classList.add('hidden-screen');
+        }
+
+        function executeResetLeaderboard() {
+            DB.resetAllData();
+            document.getElementById('reset-leaderboard-confirm').classList.add('hidden-screen');
+            // Refresh the leaderboard display
+            showLeaderboard();
+            // If current user was logged in, log them out since their data is gone
+            if (state.currentUser) {
+                logout();
+            }
+        }
+
+        function togglePause() {
+            state.isPaused = !state.isPaused;
+            const pauseMenu = document.getElementById('pause-menu');
+
+            if (state.isPaused) {
+                pauseMenu.classList.remove('hidden-screen');
+            } else {
+                pauseMenu.classList.add('hidden-screen');
+                display.input.focus();
+            }
+        }
+
+        function resumeGame() {
+            state.isPaused = false;
+            document.getElementById('pause-menu').classList.add('hidden-screen');
+            display.input.focus();
+        }
+
+        function confirmResetFromPause() {
+            document.getElementById('pause-menu').classList.add('hidden-screen');
+            if (confirm('Are you sure you want to reset the game? Your progress will be lost.')) {
+                clearInterval(state.timerInterval);
+                state.isPaused = false;
+                startGame();
+            } else {
+                state.isPaused = true;
+                document.getElementById('pause-menu').classList.remove('hidden-screen');
+            }
+        }
+
+        function confirmExitFromPause() {
+            document.getElementById('pause-menu').classList.add('hidden-screen');
+            document.getElementById('exit-confirm').classList.remove('hidden-screen');
+        }
+
+        function cancelExit() {
+            document.getElementById('exit-confirm').classList.add('hidden-screen');
+            if (state.previousScreen === 'game') {
+                state.isPaused = true;
+                document.getElementById('pause-menu').classList.remove('hidden-screen');
+            }
+        }
+
+        function confirmExitYes() {
+            clearInterval(state.timerInterval);
+            state.isPaused = false;
+            document.getElementById('exit-confirm').classList.add('hidden-screen');
+            document.getElementById('pause-menu').classList.add('hidden-screen');
+            switchScreen('menu');
+        }
+
+        function openSettings() {
+            document.getElementById('settings-modal').classList.remove('hidden-screen');
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.add('hidden-screen');
+            document.getElementById('edit-username-modal').classList.add('hidden-screen');
+            document.getElementById('change-password-modal').classList.add('hidden-screen');
+            document.getElementById('profile-info-modal').classList.add('hidden-screen');
+        }
+
+        function openEditUsername() {
+            document.getElementById('settings-modal').classList.add('hidden-screen');
+            document.getElementById('edit-username-modal').classList.remove('hidden-screen');
+            document.getElementById('new-username-input').value = '';
+            document.getElementById('edit-username-error').classList.add('hidden');
+        }
+
+        function closeEditUsername() {
+            document.getElementById('edit-username-modal').classList.add('hidden-screen');
+            document.getElementById('settings-modal').classList.remove('hidden-screen');
+        }
+
+        function saveNewUsername() {
+            const newUsername = document.getElementById('new-username-input').value.trim();
+            const errorEl = document.getElementById('edit-username-error');
+
+            if (!newUsername) {
+                errorEl.innerText = 'Please enter a username';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (newUsername === state.currentUser) {
+                errorEl.innerText = 'New username must be different';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (DB.updateUsername(state.currentUser, newUsername)) {
+                state.currentUser = newUsername;
+                display.user.innerText = newUsername;
+                closeEditUsername();
+            } else {
+                errorEl.innerText = 'Username already exists';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        function openChangePassword() {
+            document.getElementById('settings-modal').classList.add('hidden-screen');
+            document.getElementById('change-password-modal').classList.remove('hidden-screen');
+            document.getElementById('current-password-input').value = '';
+            document.getElementById('new-password-input').value = '';
+            document.getElementById('confirm-new-password-input').value = '';
+            document.getElementById('change-password-error').classList.add('hidden');
+        }
+
+        function closeChangePassword() {
+            document.getElementById('change-password-modal').classList.add('hidden-screen');
+            document.getElementById('settings-modal').classList.remove('hidden-screen');
+        }
+
+        function saveNewPassword() {
+            const currentPass = document.getElementById('current-password-input').value;
+            const newPass = document.getElementById('new-password-input').value;
+            const confirmPass = document.getElementById('confirm-new-password-input').value;
+            const errorEl = document.getElementById('change-password-error');
+
+            if (!currentPass || !newPass || !confirmPass) {
+                errorEl.innerText = 'Please fill in all fields';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (!DB.validateUser(state.currentUser, currentPass)) {
+                errorEl.innerText = 'Current password is incorrect';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            const policyError = validatePasswordPolicy(newPass);
+            if (policyError) {
+                errorEl.innerText = policyError;
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                errorEl.innerText = 'New passwords do not match';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            DB.updatePassword(state.currentUser, newPass);
+            closeChangePassword();
+        }
+
+        function openProfileInfo() {
+            const stats = DB.getUserStats(state.currentUser);
+            document.getElementById('profile-username').innerText = state.currentUser;
+            document.getElementById('profile-created').innerText = new Date(stats.createdAt).toLocaleDateString();
+            document.getElementById('profile-total-games').innerText = stats.totalGames;
+
+            document.getElementById('settings-modal').classList.add('hidden-screen');
+            document.getElementById('profile-info-modal').classList.remove('hidden-screen');
+        }
+
+        function closeProfileInfo() {
+            document.getElementById('profile-info-modal').classList.add('hidden-screen');
+            document.getElementById('settings-modal').classList.remove('hidden-screen');
+        }
+
+        display.input.addEventListener('keydown', handleInput);
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const defaultDiff = document.querySelector('.difficulty-card:nth-child(2)');
+            if(defaultDiff) selectDifficulty('medium', defaultDiff);
+        });
+
+    </script>
+</body>
+</html>
