@@ -1114,13 +1114,11 @@
                 state.timeLeft = Math.max(0, state.timeLeft - penalty);
                 display.time.innerText = state.timeLeft;
                 
-                // Show penalty notification
                 display.penaltyNotification.classList.remove('hidden');
                 setTimeout(() => {
                     display.penaltyNotification.classList.add('hidden');
                 }, 1500);
                 
-                // Update countdown bar immediately
                 const percentage = (state.timeLeft / state.maxTime) * 100;
                 display.countdownBar.style.width = `${percentage}%`;
                 
